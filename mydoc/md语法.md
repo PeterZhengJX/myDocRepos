@@ -173,21 +173,7 @@ int main() {
 
 \!\[alt 属性文本\]\(图片地址 “可选标题”\)
 
-![alt fighter](..\static\picture\fighter.jpg )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+![](..\static\picture\fighter.jpg )
 
 
 
