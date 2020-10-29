@@ -368,3 +368,64 @@ python的函数式编程允许变量存在，所以python不是纯函数式编�
 
 `filter()`同样接收一个函数和一个序列，它所接收的函数需要返回一个布尔值决定元素是否保留
 
+**sorted**
+
+`sorted()`函数可以直接用于数字序列的从小到大排序，也可以传入一个key函数来实现自定义的排序
+
+`sorted(L, key = func)`
+
+key函数会作用于序列的每一个元素上，通过其返回结果进行排序
+
+如果要反向排序，可以传入第三个参数`reverse = True`
+
+**返回函数**
+
+高阶函数除了可以把函数作为参数，还可以把函数作为返回值
+
+*注：每一次外层函数返回的都是新的函数*
+
+返回函数在调用时才执行，返回时是不执行的，如果返回函数包含了循环变量，那这个循环变量在函数执行时可能都是最终值。
+
+**匿名函数**
+
+使用lamda表示匿名函数，格式为`lamda *var: express`
+
+**装饰器**
+
+函数对象有一个`_name_`属性，可以拿到函数的名字
+
+希望动态增加函数功能，但是又不希望修改函数定义的函数功能添加方式叫做装饰器decorator
+
+两种模式，带参数和不带参数
+
+不带参数模式：
+
+```python
+import functools
+def func_outside(func):
+	@functools.wraps(func)
+	def func_inside(*args, **kw):
+		pass
+		return func(*args, **kw)
+	return func_inside
+```
+
+带参数版本：
+
+```python
+import functools
+def func_outside(txt):
+	def decorator(func):
+		@functools.wraps(func)
+		def func_inside(*args, **kw):
+			pass
+			return func(*args, **kw)
+		return func_inside
+	return decorator
+```
+
+**偏函数**
+
+利用`functools.partial`向函数传入函数对象、*args和**kw三类参数，返回的新函数叫偏函数
+
+其作用为函数参数太多时，固定部分参数
