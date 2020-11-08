@@ -483,3 +483,415 @@ isinstance(x, (type1, type2))
 
 需要注意实例属性会覆盖类属性
 
+### 面对对象高级特性
+
+**\_\_slots\_\_**
+
+python是动态语言，可以在运行中给实例添加属性和方法。添加属性`obj.attr = value`，添加方法`MethodType(method, obj)`
+
+同时也可以给类直接添加方法，`class.method()`
+
+为了限制属性的随意添加，可以使用`__slots__ = (attr)`来规定类中属性，规定之后，不在tuple中的属性便不能被添加
+
+*注意：`__slots__`仅在当前类中有效，在子类中失效*
+
+**@property**
+
+把一个方法变成属性调用，用来限定某个属性的值的设置和获取，起到的是getter和setter的作用，但是在形式上，只需要在方法前加上`@property`便可以实现getter，在方法前加上`@attr.setter`便可以实现setter
+
+**多重继承**
+
+形式：`def Class(classlist)`，classlist中可以包含多个类
+
+**定制类**
+
+1. `__str__()`
+
+   `print()`打印变量时调用的函数
+
+2. `__repr__()`
+
+   直接显示变量时调用的函数
+
+3. `__iter__()`
+
+   如果一个类想被用于`for...in`循环，则必须实现此方法，该方法返回一个迭代对象，通常和`__next__()`共同使用，通过`__next__()`不停地拿循环的下一个值
+
+4. `__getitem__()`、`__setitem__`、`__delitem__`
+
+   按下标获取元素，通过传入int或者slice切片来获取一个或者多个值
+
+   设置元素值
+
+   删除元素值
+
+5. `__getattr__()`
+
+   重写调用属性时的逻辑，如果找不到属性就调用此方法
+
+6. `__call__()`
+
+   以函数方式调用实例的处理逻辑，可以通过`callable()`判断哪些类是可调用对象
+
+**枚举类**
+
+形式：`v = Enum(typename, (enumlist))`
+
+默认从1开始赋值
+
+可以通过枚举类的派生类实现对枚举类更加灵活的使用，通过`@unique`可以限定枚举值唯一
+
+**元类**
+
+python可以通过`type()`动态创建类
+
+创建方法，依次传入三个参数
+
+1. class的名称
+2. 继承的父类集合
+3. 一个dict，将class的方法名称和函数绑定
+
+要控制类的创建行为还可以使用`metaclass`，步骤是，首先创建元类，然后创建类，最终创建实例
+
+元类从type类型派生，设置好元类之后，在创建类时，通过`metaclass = 元类`的命名关键字传入元类，在创建类时，python解释器就会调用元类的`__new__()`方法，加上新的方法，并返回修改后的定义
+
+`__new__(cls, name, bases, attrs)`接收4个参数：当前准备创建的类对象，类的名字、类的父类集合、类的方法集合
+
+## 错误、调试和测试
+
+### 错误处理
+
+**捕捉错误**
+
+`try...except...finally`机制
+
+如果要增加一个没有错误的处理，可以用`try...except...else...finally`
+
+*出错分析一定要看异常栈，不然会被打死*
+
+在捕获错误之后，可以使用python的`logging`模块记录错误信息，`logging.exception(e)`，错误会被记录到日志文件中
+
+**抛出错误**
+
+通过`raise`抛出错误，`raise xxxError()`
+
+*注：尽量使用python内置的错误类型，不要自己瞎几把定义，主要怕别人和自己之后看不懂*
+
+### 调试
+
+**print()技术**
+
+手动滑稽
+
+**assert()**
+
+`assert() express, str`，如果条件语句不符合，assert会抛出一个AssertionError的异常
+
+通过在启动python解释器时使用`-O`，可以关闭assert
+
+**logging**
+
+通过logging把错误输出到文件，通过`logging.info()`可以输出一段文本
+
+需要注意的时，logging在使用时需要通过`logging.basicConfig(level = ?)`，规定记录的异常级别，有debug、info、waring、error
+
+**pdb**
+
+python的调试器pdb可以使程序单步运行，通过`-m pdb`启动
+
+输入n单步执行，输入`p v`输出v的内容
+
+设置断点，`pdb.set_trace()`，通过命令`c`继续执行
+
+### 单元测试
+
+需要引用python的`unittest`模块，测试类继承于`unittest.TestCase`
+
+在测试类中，以`test_`开头的方法被认为使测试方法，会被执行，`unittest`提供多种断言来判断测试结果
+
+1. `assertEqual()`用于判断输出是否是期望值
+
+2. `assertRaises()`用于判断是否抛出指定的异常
+
+   ```python
+   with self.assertRaises(errorType):
+   	pass
+   ```
+
+**运行单元测试**
+
+两种方法：
+
+* 把测试文件当作正常的python脚本来运行，需要在文件最后加上main入口
+
+  ```python
+  if __name__ = '__main__':
+  	unittest.main()
+  ```
+
+* 通过命令行参数-m unittest直接运行
+
+  ```python
+  python -m unittest filename
+  ```
+
+**setUp和tearDown**
+
+这两个方法会在每次调用测试方法的前后分别被执行，用于一些每个测试都需要的重复操作
+
+### 文档测试
+
+python内置的文档测试模块可以直接提取注释中的代码并执行测试
+
+doctest严格按照python交互式命令行的输入和输出来判断测试结果是否正确
+
+*注：当模块正常导入的时候doctest不会执行，只有在命令行直接运行的时候才会执行*
+
+## IO编程
+
+### 文件读写
+
+**读文件**
+
+通过`open(filepath, openmode)`方法，可以打开一个文件对象，如果文件不存在，抛出IOError错误
+
+*注：mode中，r为读权限，w为写权限，b为打开二进制文件。如果文件不是utf-8编码，还需要通过`encodeing`参数指定读取哪种编码*
+
+文件打开之后，可以使用`read(size)`方法直接读取文件的全部内容，使用结束之后再通过`close()`方法关闭文件对象即可
+
+```python
+try:
+    f = open(filepath, mode)
+    print(f.read())
+finally:
+    if f:
+        f.close()
+```
+
+由于上述方法较为繁琐，python提供了`with`语句的写法，自动关闭文件对象
+
+```python
+with open(filepath, mode) as f:
+    print(f.read())
+```
+
+读取文件对象的方法还有`readline()`读取一行，`readlines()`读取全部并返回list
+
+**file-like Object**
+
+可以直接用`read()`直接读取的一类对象称为`file-like Object`，这些对象包括：字节流、网络流和自定义流，它们不需要继承特定的类，只需要实现`read()`方法即可
+
+**写文件**
+
+与读文件相同，通过`open()`打开文件对象，用`write()`写，最后关闭文件对象
+
+### StringIO和BytesIO
+
+**StringIO**
+
+在内存中读写字符串
+
+通过直接新建一个StringIO对象，相当于新在内存开辟了一个缓冲区，可以通过`getvalue()`获取对象中存储的字符串，也可以像文件读写一样读写该字符串
+
+**BytesIO**
+
+操作二进制串，使用方法和StringIO类似
+
+### 操作文件和目录
+
+**环境变量**
+
+环境变量保存在`os.environ`变量中，以dict的形式保存
+
+**创建删除目录**
+
+```python
+# 查看当前目录的绝对路径
+os.path.abspath('.')
+# 在某个目录下创建一个新目录，并显示新目录路径
+os.path.join(dirpath,dirname)
+# 创建一个新目录
+os.mkdir(path)
+# 删除一个目录
+os.rmdir(path)
+```
+
+*注：os.path.join()会根据系统自动使用合适的拼接符号*
+
+**拆分目录**
+
+`os.path.split(path)`，把路径结尾的目录或者文件名单独拆分出来
+
+`os.path.splitext(path)`，拆分得到文件拓展名
+
+### 序列化(pickling)
+
+**pickle模块**
+
+通过`pickle.dump(obj, f)`方法可以将对象序列化成一个bytes，然后存入f文件对象
+
+同时也可以通过`pickle.load(f)`方法从文件对象中分序列化对象
+
+**json模块**
+
+通过`dumps()`方法将JSON写入一个字符串，通过`loads()`或`load()`方法反序泪化
+
+JSON在转化自定义对象的时候需要传入一个默认参数，`default = transfunc`通过函数进行转化工作，这类函数的作用就是把对象转化成dict对象
+
+每个对象都有一个`__dict__`属性，可以通过写lamda的方法直接转化
+
+```python
+default = lamda obj: obj.__dict__
+```
+
+在反序列化时，同样需要使用`object_hook=func`绑定一个dict转对象方法
+
+## 进程和线程
+
+### 多进程
+
+**在linux或者unix下创建进程**
+
+可以直接使用os模块调用系统提供的`fork()`方法
+
+**通用**
+
+使用`multprocessing`模块提供的`Process`类，通过指定`target`方法和`args`形参，可以创建进程的实例，通过`start()`方法可以运行，通过`join()`方法使子进程获得cpu
+
+```python
+import os
+from multiprocessing import Process
+
+# 子进程所代表的分支流程
+def sub_proc(name):
+    print('sub process %s run, pid = %s' % (name, os.getpid()))
+    
+if __name__=='__main__':
+    print ('parent process run, pid = %s' % (os.getpid(),))
+    p = Process(target=sub_proc, args=('test',))
+    p.start()
+    p.join()
+    print('back to parent process')
+```
+
+如果进程很多的情况下，可以通过进程池进行管理，python的`multiprocessing`中提供`Pool`类，在创建进程池时，可以通过传入参数控制进程池大小，通过`apply_async`方法可以加入进程。在`join`运行之前可以通过`close`方法关闭进程池不再添加线程。
+
+```python
+import os, time, random
+from multiprocessing import Pool
+
+# 子进程的分支流程
+def sub_proc(name):
+    print('sub process %s start, pid = %s' % (name, os.getpid()))
+    start = time.time()
+    times.sleep(random.random() * 10)
+    end = tims.time()
+    print('sub process %s end' % (name,))
+    
+if __name__=='__main__':
+    print('parent process start, pid = %s' % (os.getpid()))
+    p = Pool(4)	# 限制同时运行的大小, cpu核数决定上限
+    for i in range(5):
+        p.apply_async(sub_proc, args=(i,))
+    p.close()
+    p.join()
+    print('parent process end')
+```
+
+**进程通信**
+
+可以通过Queue、pipes等多种方式
+
+### 多线程
+
+python通过`_tread`和`threading`两个模块，对线程进行支持
+
+启动一个线程就是通过传入一个函数并创建`Thread`实例，然后通过`start()`开始执行
+
+通过`threading`模块的`current_thread()`方法可以获取线程实例
+
+```python
+import threading
+t = threading.Thread(target=fun, name=porc_name)
+name = threading.current_thread().name()
+```
+
+**线程锁lock**
+
+通过`threading.lock()`可以创建一个锁，线程可以通过`lock.acquire()`竞争锁，只有一个线程可以获得锁，运行完成之后，通过`lock.release()`可以释放锁
+
+**GIL**
+
+python编辑器在涉及之初使用了GIL全局锁，使得任何线程在执行前必须获取此锁，而此锁在执行100条字节码之后会被编译器自动释放，所以python的多线程无法真正利用多核。
+
+### ThreadLocal
+
+通过`threading`模块提供的`local()`方法可以创建一个ThreadLocal对象
+
+通过在threadlocal中添加变量的方式，可以实现线程的局部变量，在这个角度上，threadlocal有点像全局的dict变量，只不过针对每一个线程有局部变量
+
+```python
+thread_local = threading.local()
+thread_local.var = var
+```
+
+### 分布式进程
+
+通过`multiprocessing.managers`模块中的`BaseManager`实现
+
+在master端：
+
+* 首先需要继承这个管理器基类，构造自己的管理器MyManager
+
+* 通过MyManager注册操作接口，以Queue为例
+
+  ```python
+  MyManager.register('queue_name', callable=lamda:my_queue)
+  ```
+
+* 之后创建MyManager的实例并绑定地址和密码
+
+  ```python
+  my_manager = MyManager(address=(ip, port), authkey=b'key')
+  my_manager.start()
+  ```
+
+* 通过访问my_manager可以获取之前注册的操作接口
+
+  ```python
+  queue = MyManager.get_queue_name()
+  ```
+
+在slave端：
+
+* 同样构造自己的管理器
+* 注册操作接口，不用提供callable
+* 创建管理器实例，并绑定地址和密码，通过`connect()`从网络连接
+* 获取操作接口
+
+## 正则表达式
+
+**基础规则**
+
+定长：
+
+​	`\d`可以匹配一个数字，`\w`可以匹配一个字母或者数字，`.`可以匹配任意字符，`\s`表示一个空格
+
+变长：
+
+​	`*`标识任意个字符（包括0)，`+`表示至少一个字符，`?`表示0个或者1个字符，`{n}`表示n个字符，`{n,m}`表示n-m个字符
+
+**进阶**
+
+`[]`表示范围，`|`表示或者，`^`表示行开头，`$`表示行结尾
+
+正则匹配默认是贪婪匹配，通过结尾加`?`可以使其采用非贪婪匹配
+
+**re模块**
+
+re模块提供`match()`方法判断是否匹配，如果匹配则返回一个Match对象，否则返回None
+
+*注：通过正则表达式可以很轻松地划分字符串*
+
+在正则表示式中，可以通过`()`进行分组，在返回的Match对象中，可以通过`group(n)`方法获取划为好的组，0为完整字符串，1~n
+
